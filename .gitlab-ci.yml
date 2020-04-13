@@ -32,7 +32,7 @@ deploy-app:
     - export KUBE_IMAGE_PULL KUBE_IMAGE_PULL_SECRET
     - kubectl config set-cluster gitlab-deploy --server="$KUBE_URL" --insecure-skip-tls-verify=true
     - kubectl config set-credentials gitlab-deploy --token="$KUBE_TOKEN"
-    - kubectl config set-context gitlab-deploy --cluster=gitlab-deploy --user=gitlab-deploy --namespace="$KUBE_NAMESPACE"
+    - kubectl config set-context gitlab-deploy --cluster=gitlab-deploy --user=gitlab-deploy --namespace="$CI_COMMIT_REF_NAME"
     - kubectl config use-context gitlab-deploy
     - envsubst < deploy/deployment.yaml | kubectl apply -f -
   environment:
