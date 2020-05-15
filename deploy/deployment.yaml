@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: $CI_PROJECT_NAME
+    sha: $CI_COMMIT_SHA
   name: $CI_PROJECT_NAME
   namespace: $KUBE_NAMESPACE
 spec:
@@ -14,6 +15,7 @@ spec:
     metadata:
       labels:
         app: $CI_PROJECT_NAME
+        sha: $CI_COMMIT_SHA
     spec:
       containers:
       - envFrom:
