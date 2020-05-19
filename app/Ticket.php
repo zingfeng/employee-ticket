@@ -31,7 +31,7 @@ class Ticket
     		'employee_id' => $params['employee_id'],
 			'data'	=> (is_array($params['data'])) ? json_encode($params['data']) : $params['data'],
 		    'type_id' => $params['type_id'],
-		    'reason' => $params['reason'],
+		    'reason' => $params['note'],
             'from_date' => $params['from_date']
 		]);
 	}
