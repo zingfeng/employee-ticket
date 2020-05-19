@@ -37,7 +37,7 @@ class TicketController extends Controller
      */
     public function add(Request $request,Ticket $ticketModel, TicketType $ticketTypeModel)
     {
-        $input = $request->only('employee_id','note','type_id','data','location');
+        $input = $request->only('employee_id','reason','type_id','data','location');
         // get type detail
         $validator = \Validator::make($input, [
             'type_id' => 'required',
