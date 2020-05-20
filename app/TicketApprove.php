@@ -6,7 +6,7 @@ namespace App;
 class TicketApprove
 {
     public function getListProcessing($params = array()){
-        $params = array_merge(['status' => 0],$params);
+        $params = array_merge(['status' => 'open'],$params);
     	$objectDb =  \DB::table('ticket');
         if (isset($params['status'])) {
         	$objectDb->where('status',$params['status']);
