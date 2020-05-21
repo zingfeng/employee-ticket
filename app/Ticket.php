@@ -37,7 +37,7 @@ class Ticket
 	}
     public function delete($params = array()) {
     	return \DB::table('ticket')
-            ->where(['ticket_id' => $params['ticket_id'],'employee_id' => $params['employee_id'],'status' => 0])
+            ->where(['ticket_id' => $params['ticket_id'],'employee_id' => $params['employee_id'],'status' => 'open'])
             ->delete();
     }
     public function getDetailById($params = array()) {
