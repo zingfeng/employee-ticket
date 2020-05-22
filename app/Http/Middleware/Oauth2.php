@@ -33,7 +33,7 @@ class Oauth2
         if(!isset($profile['tracking_setting_id'])) {
             $profile['tracking_setting_id'] = 1;
         }
-        $request->merge( ['employee_id' => $profile['employee_id'],'profile' => (array)$profile ]);
+        $request->merge( ['employee_id' => $profile['user_id'],'profile' => (array)$profile ]);
         $response = $next($request);
 
         // $request->merge( ['employee_id' => 12,'profile' => ['department_id' => 4,'tracking_setting_id'=> 1] ] );
