@@ -16,7 +16,7 @@ class Oauth2
      */
     public function handle($request, Closure $next)
     {
-        Pre-Middleware Action
+        // Pre-Middleware Action
         $jwt = substr($request->header('authorization'), 7);
         // $jwt = $request->header('accesstoken');
         if (!$jwt) {
