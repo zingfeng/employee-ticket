@@ -24,7 +24,7 @@ $router->group(['prefix' => 'ticket','middleware' => 'App\Http\Middleware\Oauth2
     $router->post('delete', ['as' => 'ticket_delete', 'uses' => 'TicketController@delete']);
     $router->get('lists', ['as' => 'ticket_list', 'uses' => 'TicketController@lists']);
     $router->get('detail', ['as' => 'ticket_detail', 'uses' => 'TicketController@detail']);
-    $router->post('add', ['as' => 'ticket_add', 'uses' => 'TicketController@add']);
+    $router->post('add', ['as' => 'ticket_add', 'uses' => 'TicketController@add']); 
 });
 $router->group(['prefix' => 'ticket_type','middleware' => 'App\Http\Middleware\Oauth2'], function () use ($router) {
     $router->get('lists', ['as' => 'ticket_type_lists', 'uses' => 'TicketTypeController@lists']);

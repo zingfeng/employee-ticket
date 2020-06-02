@@ -6,7 +6,7 @@ namespace App;
 class TicketApprove
 {
     public function getListProcessing($params = array()){
-        $params = array_merge(['status' => 0],$params);
+        $params = array_merge(['status' => 'open'],$params);
     	$objectDb =  \DB::table('ticket');
         if (isset($params['status'])) {
         	$objectDb->where('status',$params['status']);
@@ -29,8 +29,8 @@ class TicketApprove
         //         'manager_id' => $params['manager_id']
         //     ]);
         return \DB::table('ticket')
-            ->where(['ticket_id' => $params['ticket_id'],'status' => 0])
-            ->update(['status' => 200]);
+            ->where(['ticket_id' => $params['ticket_id'],'status' => 'open'])
+            ->update(['status' => 'approved']);
 
     }
     public function getFolowId($params) {
@@ -42,7 +42,7 @@ class TicketApprove
     public function reject($params) {
         //active 
         return \DB::table('ticket')
-            ->where(['ticket_id' => $params['ticket_id'],'status' => 0])
-            ->update(['status' => -1]);
+            ->where(['ticket_id' => $params['ticket_id'],'status' => 'open'])
+            ->update(['status' => 'rejected']);
     } 
 }
