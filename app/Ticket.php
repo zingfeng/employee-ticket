@@ -27,13 +27,16 @@ class Ticket
     }
 	public function add($params) {
         $params = array_merge(['from_date' => date('Y-m-d')],$params);
-		return \DB::table('ticket')->insertGetId([
-    		'employee_id' => $params['employee_id'],
-			'data'	=> (is_array($params['data'])) ? json_encode($params['data']) : $params['data'],
-		    'type_id' => $params['type_id'],
-		    'reason' => $params['reason'],
+        $insertData = [
+            'employee_id' => $params['employee_id'],
+            'type_id' => $params['type_id'],
+            'reason' => $params['reason'],
             'from_date' => $params['from_date']
-		]);
+        ];
+        if (isset($params['data'])) {
+            $insertData['data'] = (is_array($params['data'])) ? json_encode($params['data']) : $params['data'];
+        }
+		return \DB::table('ticket')->insertGetId($insertData);
 	}
     public function delete($params = array()) {
     	return \DB::table('ticket')

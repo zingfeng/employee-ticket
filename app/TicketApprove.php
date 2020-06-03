@@ -33,11 +33,16 @@ class TicketApprove
             ->update(['status' => 'approved']);
 
     }
-    public function getFolowId($params) {
+    /**
+    * @author: namtq
+    * @todo: lay danh sach nguoi duyet ngoai quan ly truc tiep
+    * @param: array(type_id) 
+    */
+    public function getManagerApproveTicket($params) {
         //get department 
         return \DB::table('ticket_type_flow')
-            ->where(['type_id' => $params['type_id'],'manager_id' => $params['manager_id']])
-            ->first();
+            ->where(['type_id' => $params['type_id']])
+            ->get();
     }
     public function reject($params) {
         //active 
