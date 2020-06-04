@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Ticket;
 use App\TicketType;
+use App\TicketProcess;
+use App\Employee;
 use Illuminate\Http\Request;
 
 class TicketController extends Controller
@@ -53,6 +55,43 @@ class TicketController extends Controller
         }
         $template = json_decode($typeDetail->template,TRUE);
         $ticketId = $ticketModel->add($input);
+        //Sau khi tạo ticket xong -> tạo process (nếu có)
+        $i = 1;
+        if($typeDetail->level_approve){     //Nếu tồn tại cấp quản lý duyệt
+            $employee_id = $input['employee_id'];
+            for($i; $i <= $typeDetail->level_approve; $i++){
+                //Get manager of employee
+                $profile = (new Employee())->getDetailById($employee_id);
+                if(!$profile->manager_id){
+                    break;
+                }
+                //Tạo process
+                $params = array(
+                    'manager_id' => $profile->manager_id,
+                    'ticket_id' => $ticketId,
+                    'status' => $i == 1 ? 'active' : 'inactive'
+                );
+                (new TicketProcess())->add($params);
+                $employee_id = $profile->manager_id;
+            }
+        }
+        //Get ticket type to manager
+        $arrManager = (new TicketType())->getTicketTypeToManager((int)$input['type_id'])->toArray();
+        if($arrManager){     //Các quản lý là người duyệt trực tiếp
+            foreach($arrManager as $manager){
+                if(!$manager->manager_id){
+                    break;
+                }
+                //Tạo process
+                $params = array(
+                    'manager_id' => $manager->manager_id,
+                    'ticket_id' => $ticketId,
+                    'status' => $i == 1 ? 'active' : 'inactive'
+                );
+                (new TicketProcess())->add($params);
+            }
+        }
+
         return response()->json(['ticket_id' => $ticketId]);
     }
     /**
