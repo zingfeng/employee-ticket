@@ -59,6 +59,7 @@ class TicketController extends Controller
         $i = 1;
         if($typeDetail->level_approve){     //Nếu tồn tại cấp quản lý duyệt
             $employee_id = $input['employee_id'];
+            $batch = array();
             for($i; $i <= $typeDetail->level_approve; $i++){
                 //Get manager of employee
                 $profile = (new Employee())->getDetailById($employee_id);
@@ -66,29 +67,35 @@ class TicketController extends Controller
                     break;
                 }
                 //Tạo process
-                $params = array(
+                $batch[] = array(
                     'manager_id' => $profile->manager_id,
                     'ticket_id' => $ticketId,
-                    'status' => $i == 1 ? 'active' : 'inactive'
+                    'status' => $i == 1 ? 'active' : 'inactive',
                 );
-                (new TicketProcess())->add($params);
                 $employee_id = $profile->manager_id;
             }
+            if($batch){
+                (new TicketProcess())->add_batch($batch);
+            }
+            
         }
         //Get ticket type to manager
         $arrManager = (new TicketType())->getTicketTypeToManager((int)$input['type_id'])->toArray();
         if($arrManager){     //Các quản lý là người duyệt trực tiếp
+            $batch2 = array();
             foreach($arrManager as $manager){
                 if(!$manager->manager_id){
                     break;
                 }
                 //Tạo process
-                $params = array(
+                $batch2[] = array(
                     'manager_id' => $manager->manager_id,
                     'ticket_id' => $ticketId,
-                    'status' => $i == 1 ? 'active' : 'inactive'
+                    'status' => $i == 1 ? 'active' : 'inactive',
                 );
-                (new TicketProcess())->add($params);
+            }
+            if($batch2){
+                (new TicketProcess())->add_batch($batch2);
             }
         }
 

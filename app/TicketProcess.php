@@ -7,17 +7,8 @@ namespace App;
 class TicketProcess
 {
     // Add ticket process
-    public function add($params) {
-        $params = array_merge(['created_time' => date('Y-m-d')], $params);
-        $insertData = [
-            'ticket_id' => $params['ticket_id'],
-            'manager_id' => $params['manager_id'],
-            'status' => $params['status'],
-        ];
-        if (isset($params['data'])) {
-            $insertData['data'] = (is_array($params['data'])) ? json_encode($params['data']) : $params['data'];
-        }
-        return \DB::table('ticket_process')->insertGetId($insertData);
+    public function add_batch($input) {
+        return \DB::table('ticket_process')->insert($input);
     }
     //Get detail
     public function getDetail($params = array()) {
