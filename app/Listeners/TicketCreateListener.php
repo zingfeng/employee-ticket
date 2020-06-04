@@ -37,7 +37,13 @@ class TicketCreateListener
             \Log::warning("Ticket Type not found ");
             return false;
         }
-
-        return $ticketModel->add($data);
+        // tao ticket moi
+        $ticketId =  $ticketModel->add($data);
+        if (!$ticketId) {
+            \Log::warning("Can not create ticket");
+            return false;
+        }
+        /// assign ticket to manager
+        $intLevel = $ticketTypeDetail->level_approve;
     }
 }
