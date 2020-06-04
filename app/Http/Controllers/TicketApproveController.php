@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\TicketApprove;
 use App\Ticket;
+use App\TicketProcess;
 use App\TicketType;
 use App\Employee;
 use Illuminate\Http\Request;
@@ -48,10 +49,31 @@ class TicketApproveController extends Controller
         $ticketModel = new Ticket;
         $ticketModel->getDetailById(['ticket_id' => $input['ticket_id']]);
 
-        //$ticketApprove->getFolowId([])
+        //Hòa Nguyễn - Get ticket process
+        $processModel = new TicketProcess;
+        $processDetail = $processModel->getDetail(['ticket_id' => $input['ticket_id'], 'manager_id' => $input['employee_id']]);
+        //Không tồn tại ticket process hoặc stauts != 'inactive' thì return FALSE
+        if(!$processDetail){
+            return response()->json(['result' => FALSE, 'message' => 'Bạn không có quyền duyệt đơn này']);
+        }else if(isset($processDetail->status) && $processDetail->status != 'active'){
+            return response()->json(['result' => FALSE, 'message' => 'Bạn không thể thay đổi trạng thái của ticket process']);
+        }
+        //Đổi trạng thái của Ticket Process
+        $processResult = $processModel->accept($processDetail->process_id);
 
-        $result = $ticketApprove->accept(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]);
-        return response()->json(['result' => $result]);
+        if($processResult){
+            $processNxt = $processModel->getNxt($processDetail->process_id);
+            //Nếu không còn process tiếp theo, tức tất cả đã được duyệt
+            if(!$processNxt){
+                $result = $ticketApprove->accept(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]); 
+                return response()->json(['result' => $result]);
+            }else{      //Process next chuyển trạng thái active
+                $processModel->active($processNxt->process_id);
+            }
+        }
+
+        // $result = $ticketApprove->accept(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]); 
+        return response()->json(['result' => $processResult]);
     }
     /**
      * Show the form for editing the specified resource.
@@ -65,7 +87,21 @@ class TicketApproveController extends Controller
         $ticketModel = new Ticket;
         $ticketModel->getDetailById(['ticket_id' => $input['ticket_id']]);
 
-        $result = $ticketApprove->reject(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]);
-        return response()->json(['result' => $result]);
+        //Hòa Nguyễn - Get ticket process
+        $processModel = new TicketProcess;
+        $processDetail = $processModel->getDetail(['ticket_id' => $input['ticket_id'], 'manager_id' => $input['employee_id']]);
+        //Không tồn tại ticket process hoặc stauts != 'inactive' thì return FALSE
+        if(!$processDetail){
+            return response()->json(['result' => FALSE, 'message' => 'Bạn không có quyền từ chối đơn này']);
+        }else if(isset($processDetail->status) && $processDetail->status != 'active'){
+            return response()->json(['result' => FALSE, 'message' => 'Bạn không thể thay đổi trạng thái của ticket process']);
+        }
+        //Đổi trạng thái của Ticket Process
+        $processResult = $processModel->reject($processDetail->process_id);
+        if($processResult){         //Reject thành công thì reject luôn cả ticket
+            $result = $ticketApprove->reject(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]);
+            return response()->json(['result' => $result]);
+        }
+        return response()->json(['result' => $processResult]);
     }
 }
