@@ -19,8 +19,12 @@ class TicketApproveController extends Controller
     public function lists(Request $request,TicketApprove $ticketApproveModel)
     {
         $input = $request->only('employee_id');
-        $arrTicket = $ticketApproveModel->getListProcessing();
-        
+        $params = array(
+            'status' => 'active',
+            'manager_id' => $input['employee_id']
+        );
+        $arrTicket = $ticketApproveModel->getListTicketByManager($params);
+
         $arrTicketTypeId = $arrTicket->groupBy('type_id')->keys()->all();
         $arrEmployeeId = $arrTicket->groupBy('employee_id')->keys()->all();
         $ticketTypeModel = new TicketType;
@@ -33,7 +37,7 @@ class TicketApproveController extends Controller
             $arrTicket[$key]->employee_detail = $arrEmployee[$ticket->employee_id][0];
         }
 
-        return response()->json($arrTicket); 
+        return response()->json($arrTicket);
     }
     /**
      * Store a newly created resource in storage.
@@ -65,14 +69,14 @@ class TicketApproveController extends Controller
             $processNxt = $processModel->getNxt($processDetail->process_id);
             //Nếu không còn process tiếp theo, tức tất cả đã được duyệt
             if(!$processNxt){
-                $result = $ticketApprove->accept(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]); 
+                $result = $ticketApprove->accept(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]);
                 return response()->json(['result' => $result]);
             }else{      //Process next chuyển trạng thái active
                 $processModel->active($processNxt->process_id);
             }
         }
 
-        // $result = $ticketApprove->accept(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]); 
+        // $result = $ticketApprove->accept(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]);
         return response()->json(['result' => $processResult]);
     }
     /**
