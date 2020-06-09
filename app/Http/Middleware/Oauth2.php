@@ -35,12 +35,6 @@ class Oauth2
         }
         $request->merge( ['employee_id' => $profile['user_id'],'profile' => (array)$profile ]);
         $response = $next($request);
-
-        // $request->merge( ['employee_id' => 12,'profile' => ['department_id' => 4,'tracking_setting_id'=> 1] ] );
-        // $response = $next($request);
-
-        // Post-Middleware Action
-
         return $response;
     }
 }

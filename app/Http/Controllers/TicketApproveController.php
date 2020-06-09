@@ -45,39 +45,54 @@ class TicketApproveController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function accept(Request $request,TicketApprove $ticketApprove)
+    public function accept(Request $request)
     {
-
         $input = $request->only('employee_id','ticket_id');
+        $validator = \Validator::make($input, [
+            'ticket_id' => 'required'
+        ]);
+        if ($validator->fails()) {
+            //pass validator errors as errors object for ajax response
+            return response()->json(["error" => 'validate', 'error_description'=>$validator->errors()->first()]);
+        }
         /////// GET DETAIL TICKET ///////
         $ticketModel = new Ticket;
-        $ticketModel->getDetailById(['ticket_id' => $input['ticket_id']]);
-
+        $ticketDetail = $ticketModel->getDetailById(['ticket_id' => $input['ticket_id']]);
+        if(!$ticketDetail || $ticketDetail->status != 'open'){
+            return response()->json(['error' => 'invalid_ticket', 'message' => 'Đơn không tồn tại hoặc đã được duyệt']);
+        }
         //Hòa Nguyễn - Get ticket process
         $processModel = new TicketProcess;
         $processDetail = $processModel->getDetail(['ticket_id' => $input['ticket_id'], 'manager_id' => $input['employee_id']]);
         //Không tồn tại ticket process hoặc stauts != 'inactive' thì return FALSE
-        if(!$processDetail){
-            return response()->json(['result' => FALSE, 'message' => 'Bạn không có quyền duyệt đơn này']);
-        }else if(isset($processDetail->status) && $processDetail->status != 'active'){
-            return response()->json(['result' => FALSE, 'message' => 'Bạn không thể thay đổi trạng thái của ticket process']);
+        if(!$processDetail || $processDetail->status == 'active'){
+            return response()->json(['error' => 'invalid_process', 'message' => 'Duyệt đơn không tồn tại hoặc đã được duyệt']);
         }
-        //Đổi trạng thái của Ticket Process
-        $processResult = $processModel->accept($processDetail->process_id);
+        $result = \DB::transaction(function () use($processModel, $processDetail) {
+            //Đổi trạng thái của Ticket Process
+            $result = $processModel->accept($processDetail->process_id);
+            if($result){
+                $processNxt = $processModel->getNxt($processDetail->process_id);
+                //Nếu không còn process tiếp theo, tức tất cả đã được duyệt
+                if(!$processNxt){
+                    $ticketApprove = new TicketApprove;
+                    $status = $ticketApprove->accept(['ticket_id' => $processDetail->ticket_id]);
+                    $result = ['manager_id' => $processNxt->manager_id,'event' => 'ticket_process_active'];
+                }else{      
+                    //Process next chuyển trạng thái active
+                    $status = $processModel->active($processNxt->process_id);
+                    $result = ['event' => 'ticket_approved'];
+                }
 
-        if($processResult){
-            $processNxt = $processModel->getNxt($processDetail->process_id);
-            //Nếu không còn process tiếp theo, tức tất cả đã được duyệt
-            if(!$processNxt){
-                $result = $ticketApprove->accept(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]);
-                return response()->json(['result' => $result]);
-            }else{      //Process next chuyển trạng thái active
-                $processModel->active($processNxt->process_id);
             }
+            return $result;
+        }, 2);
+        if (isset($result['event'])) {
+            $eventData = array_merge(['employee_id' => $ticketDetail->employee_id,$result]);
+            unset($data['event']);
+            event(new \App\Events\BusEvent($result['event'],$eventData));
         }
-
-        // $result = $ticketApprove->accept(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]);
-        return response()->json(['result' => $processResult]);
+        return response()->json(['result' => ($result) ? 1 : 0]);
     }
     /**
      * Show the form for editing the specified resource.
@@ -88,24 +103,38 @@ class TicketApproveController extends Controller
     public function reject(Request $request, TicketApprove $ticketApprove)
     {
         $input = $request->only('employee_id','ticket_id');
+        $validator = \Validator::make($input, [
+            'ticket_id' => 'required'
+        ]);
+        if ($validator->fails()) {
+            //pass validator errors as errors object for ajax response
+            return response()->json(["error" => 'validate', 'error_description'=>$validator->errors()->first()]);
+        }
+        /////// GET DETAIL TICKET ///////
         $ticketModel = new Ticket;
-        $ticketModel->getDetailById(['ticket_id' => $input['ticket_id']]);
-
+        $ticketDetail = $ticketModel->getDetailById(['ticket_id' => $input['ticket_id']]);
+        if(!$ticketDetail || $ticketDetail->status != 'open'){
+            return response()->json(['error' => 'invalid_ticket', 'error_description' => 'Đơn không tồn tại hoặc đã được duyệt']);
+        }
         //Hòa Nguyễn - Get ticket process
         $processModel = new TicketProcess;
         $processDetail = $processModel->getDetail(['ticket_id' => $input['ticket_id'], 'manager_id' => $input['employee_id']]);
         //Không tồn tại ticket process hoặc stauts != 'inactive' thì return FALSE
-        if(!$processDetail){
-            return response()->json(['result' => FALSE, 'message' => 'Bạn không có quyền từ chối đơn này']);
-        }else if(isset($processDetail->status) && $processDetail->status != 'active'){
-            return response()->json(['result' => FALSE, 'message' => 'Bạn không thể thay đổi trạng thái của ticket process']);
+        if(!$processDetail || $processDetail->status == 'active'){
+            return response()->json(['error' => 'invalid_process', 'error_description' => 'Duyệt đơn không tồn tại hoặc đã được duyệt']);
         }
         //Đổi trạng thái của Ticket Process
-        $processResult = $processModel->reject($processDetail->process_id);
-        if($processResult){         //Reject thành công thì reject luôn cả ticket
-            $result = $ticketApprove->reject(['ticket_id' => $input['ticket_id'],'manager_id' => $input['employee_id']]);
-            return response()->json(['result' => $result]);
+        $result = \DB::transaction(function () use($processModel, $processDetail) {
+            $result = $processModel->reject($processDetail->process_id);
+            if($result){//Reject thành công thì reject luôn cả ticket
+                $result = $ticketApprove->reject(['ticket_id' => $input['ticket_id']]);
+            }
+            return $result;
+        }, 2);
+        if (isset($result)) {
+            event(new \App\Events\BusEvent('ticket_rejected',['employee_id' => $ticketDetail->employee_id]));
         }
-        return response()->json(['result' => $processResult]);
+        
+        return response()->json(['result' => $result]);
     }
 }

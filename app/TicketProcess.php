@@ -7,7 +7,7 @@ namespace App;
 class TicketProcess
 {
     // Add ticket process
-    public function add_batch($input) {
+    public function add($input) {
         return \DB::table('ticket_process')->insert($input);
     }
     //Get detail
@@ -19,8 +19,9 @@ class TicketProcess
     }
     public function getNxt($process_id) {
         return \DB::table('ticket_process')
-            ->where('process_id', '>', $process_id)
+            //->where('process_id', '>', $process_id)
             ->where(['status' => 'inactive'])
+            ->orderBy('process_id')
             ->first();
     }
     // Duyệt

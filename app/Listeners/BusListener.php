@@ -2,12 +2,13 @@
 
 namespace App\Listeners;
 
-use App\Events\ExampleEvent;
+use App\Events\BusEvent;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
-class ExampleListener
+class BusListener implements ShouldQueue
 {
+    public $queue = 'event_bus';
     /**
      * Create the event listener.
      *
@@ -24,7 +25,7 @@ class ExampleListener
      * @param  ExampleEvent  $event
      * @return void
      */
-    public function handle(ExampleEvent $event)
+    public function handle(Bus $event)
     {
         //
     }

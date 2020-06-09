@@ -31,35 +31,14 @@ class TicketApprove
             ->first();
     }
     public function accept($params) {
-        //check manager
-
-        //active
-
-        // \DB::table('ticket_process')
-        //     ->insert([
-        //         'ticket_id' => $params['ticket_id'],
-        //         'manager_id' => $params['manager_id']
-        //     ]);
         return \DB::table('ticket')
-            ->where(['ticket_id' => $params['ticket_id'],'status' => 'open'])
+            ->where(['ticket_id' => $params['ticket_id']])
             ->update(['status' => 'approved']);
-
-    }
-    /**
-    * @author: namtq
-    * @todo: lay danh sach nguoi duyet ngoai quan ly truc tiep
-    * @param: array(type_id)
-    */
-    public function getManagerApproveTicket($params) {
-        //get department
-        return \DB::table('ticket_type_flow')
-            ->where(['type_id' => $params['type_id']])
-            ->get();
     }
     public function reject($params) {
         //active
         return \DB::table('ticket')
-            ->where(['ticket_id' => $params['ticket_id'],'status' => 'open'])
+            ->where(['ticket_id' => $params['ticket_id']])
             ->update(['status' => 'rejected']);
     }
 }
