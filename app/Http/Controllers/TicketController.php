@@ -44,7 +44,7 @@ class TicketController extends Controller
         // get type detail
         $validator = \Validator::make($input, [
             'type_id' => 'required',
-            'data' => 'required',
+            //'data' => 'required',
             'reason' => 'required'
         ]);
         if ($validator->fails()) {
