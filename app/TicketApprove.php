@@ -13,36 +13,32 @@ class TicketApprove
         }
         return $objectDb->get();
     }
+    public function getListTicketByManager($params = array()){
+        $params = array_merge(['status' => 'open'],$params);
+        $objectDb =  \DB::table('ticket');
+        if (isset($params['status'])) {
+            $objectDb->where('ticket_process.status',$params['status']);
+        }
+        if (isset($params['manager_id'])) {
+            $objectDb->where('ticket_process.manager_id',$params['manager_id']);
+        }
+        $objectDb->join('ticket_process','ticket_process.ticket_id','=','ticket.ticket_id');
+        return $objectDb->get();
+    }
     public function getDetailById($params) {
     	return \DB::table('ticket')
             ->where(['ticket_id' => $params['ticket_id']])
             ->first();
     }
     public function accept($params) {
-        //check manager
-
-        //active 
-        
-        // \DB::table('ticket_process')
-        //     ->insert([
-        //         'ticket_id' => $params['ticket_id'],
-        //         'manager_id' => $params['manager_id']
-        //     ]);
         return \DB::table('ticket')
-            ->where(['ticket_id' => $params['ticket_id'],'status' => 'open'])
+            ->where(['ticket_id' => $params['ticket_id']])
             ->update(['status' => 'approved']);
-
-    }
-    public function getFolowId($params) {
-        //get department 
-        return \DB::table('ticket_type_flow')
-            ->where(['type_id' => $params['type_id'],'manager_id' => $params['manager_id']])
-            ->first();
     }
     public function reject($params) {
-        //active 
+        //active
         return \DB::table('ticket')
-            ->where(['ticket_id' => $params['ticket_id'],'status' => 'open'])
+            ->where(['ticket_id' => $params['ticket_id']])
             ->update(['status' => 'rejected']);
-    } 
+    }
 }

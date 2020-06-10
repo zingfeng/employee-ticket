@@ -27,7 +27,7 @@ class Oauth2
 
         try {
             $profile = (array)JWT::decode($jwt, $public_key , array('RS256'));
-        } catch(\Firebase\JWT\ExpiredException $e){
+        }catch (\Exception $e) {
             return response()->json(['error' => 'access_token_invalid','error_description' => $e->getMessage()]);
         }
         if(!isset($profile['tracking_setting_id'])) {
@@ -35,12 +35,6 @@ class Oauth2
         }
         $request->merge( ['employee_id' => $profile['user_id'],'profile' => (array)$profile ]);
         $response = $next($request);
-
-        // $request->merge( ['employee_id' => 12,'profile' => ['department_id' => 4,'tracking_setting_id'=> 1] ] );
-        // $response = $next($request);
-
-        // Post-Middleware Action
-
         return $response;
     }
 }

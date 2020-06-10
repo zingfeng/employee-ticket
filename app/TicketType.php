@@ -33,4 +33,9 @@ class TicketType
         return \DB::table('ticket_category')
             ->get();
     }
+    public function getTicketTypeToManager($type_id){
+        return \DB::table('ticket_type_to_manager')
+            ->where(['type_id' => $type_id])
+            ->get();
+    }
 }
