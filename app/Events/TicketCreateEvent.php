@@ -10,11 +10,11 @@ class TicketCreateEvent extends Event
      * @return void
      */
     public $data;
-    public $event_name;
+    //public $event_name;
 
-    public function __construct($event_name, $data = array())
+    public function __construct($data = array())
     {
         $this->data = $data;
-        $this->event_name = $event_name.'::employee_ticket';
+        //$this->event_name = $event_name.'::employee_ticket';
     }
 }
